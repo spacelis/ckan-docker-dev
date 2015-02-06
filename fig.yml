@@ -1,0 +1,21 @@
+ckan:
+  build: .
+  links:
+    - db
+    - solr
+  ports:
+    - 80:80
+  volumes:
+    - ./ckan:/usr/lib/ckan/default/src/ckan
+    - ./ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
+    - ./ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
+
+solr:
+  image: spacelis/ckan_solr
+  ports:
+    - 8983:8983
+
+db:
+  image: spacelis/ckan_postgresql
+  ports:
+    - 5432:5432

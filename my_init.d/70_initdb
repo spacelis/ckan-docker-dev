@@ -1,0 +1,39 @@
+#!/bin/sh
+set -eu
+
+
+POSTGRESQL_URL=postgresql://$DB_ENV_POSTGRESQL_USER:$DB_ENV_POSTGRESQL_PASS@$DB_PORT_5432_TCP_ADDR
+CONFIGURED=`psql $POSTGRESQL_URL -Atqc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"` 
+
+if [ $CONFIGURED -gt 0 ]; then
+  echo "$CONFIGURED"
+  echo "Already Configured... SKIP"
+  exit 0
+fi
+
+echo "Initializing the users and the db for datastore plugin..."
+psql $POSTGRESQL_URL << EOF
+CREATE USER $CKAN_DATASTORE_READER NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN PASSWORD '$CKAN_DATASTORE_READPASS';
+CREATE USER $CKAN_DATASTORE_WRITER NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN PASSWORD '$CKAN_DATASTORE_WRITEPASS';
+CREATE DATABASE $CKAN_DATASTORE_DB OWNER $DB_ENV_POSTGRESQL_USER ENCODING 'UTF8';
+CREATE USER $CKAN_DATAPUSHER NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN PASSWORD '$CKAN_DATAPUSHER_PASS';
+CREATE DATABASE $CKAN_DATAPUSHER_DB OWNER $DB_ENV_POSTGRESQL_USER ENCODING 'UTF8';
+
+\\connect $CKAN_DATAPUSHER_DB
+
+-- revoke permissions for the read-only user
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+
+GRANT CREATE ON SCHEMA public TO "$CKAN_DATAPUSHER";
+GRANT USAGE ON SCHEMA public TO "$CKAN_DATAPUSHER";
+EOF
+
+echo "Setting up permissions on datastore plugin..."
+"$CKAN_HOME"/bin/paster --plugin=ckan datastore set-permissions -c "${CKAN_CONFIG}/ckan.ini" | psql $POSTGRESQL_URL
+echo "Initializing the structure of ckan database.."
+"$CKAN_HOME"/bin/paster --plugin=ckan db init -c "${CKAN_CONFIG}/ckan.ini"
+echo "Adding sysadmin ($CKAN_ADMIN_USER) ..."
+# TODO check why sysadmin add command make an extra "default" user
+expect -f "${CKAN_CONFIG}/addsysadmin.exp"
+echo "Done initdb"

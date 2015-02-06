@@ -1,0 +1,41 @@
+containers:
+  ckan:
+    dockerfile: .
+    image: spacelis/cdrc_repo
+    run:
+      link:
+        - db:db
+        - solr:solr
+      publish:
+        - 80:80
+      volumes-from:
+        - dataonly
+      detach: true
+
+  solr:
+    image: spacelis/ckan_solr
+    run:
+      publish:
+        - 8983:8983
+      detach: true
+
+  db:
+    image: spacelis/ckan_postgresql
+    run:
+      publish:
+        - 5432:5432
+      volumes-from:
+        - dataonly
+      detach: true
+
+  dataonly:
+    image: spacelis/cdrc_repo_volume
+    run:
+      volumes:
+        - /var/lib/ckan
+        - /var/lib/postgresql
+        - /var/log
+        - /tmp
+      detach: true
+      cmd: "true"
+    
