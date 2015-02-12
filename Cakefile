@@ -112,8 +112,7 @@ class ProcedureRegistry
         action()
         console.log "#{ proc }: The action complete"
       else
-        console.log "#{chalk.red "[Error]"} #{proc}: The action is not defined."
-        process.exit -2
+        console.log "#{chalk.yellow "[Warn]"} #{proc}: The action is not defined."
       if !reg[proc].target?()
         console.log "#{ chalk.red "[Error]"} #{ proc }: The target cannot be ensured through the action"
         process.exit -1
