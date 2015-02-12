@@ -62,8 +62,8 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-service-provider
 RUN git clone https://github.com/spacelis/ckan-datapusher-service.git $CKAN_HOME/src/datapusher
 # RUN $CKAN_HOME/bin/pip install -r $CKAN_HOME/src/datapusher/requirements.txt
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/datapusher/
-ADD ./datapusher-srv/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
-ADD ./datapusher-srv/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
+RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
+RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
 
 #Install Cdrcmeta
 RUN git clone https://github.com/spacelis/ckanext-cdrcmeta.git $CKAN_HOME/src/ckanext-cdrcmeta
@@ -72,7 +72,7 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
-ADD ./datapusher-srv/deployment/datapusher.conf /etc/apache2/sites-available/datapusher.conf
+RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher.conf /etc/apache2/sites-available/datapusher.conf
 RUN echo "Listen 8080" > /etc/apache2/ports.conf
 RUN echo "Listen 8800" >> /etc/apache2/ports.conf
 RUN echo "StartServers 1" >> /etc/apache2/apache2.conf
