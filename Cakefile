@@ -14,6 +14,33 @@ catch err
   which = null
 
 # ------------ Utility Functions
+#
+
+class UUIDPool
+  class UUID
+    constructor: (@prefix, seed) ->
+      @seed = seed ? 0
+
+    next: ->
+      "#{@prefix}-#{@seed++}"
+
+  constructor: ->
+    @pool = {}
+
+  get: (prefix) ->
+    if @pool[prefix]? 
+      @pool[prefix] 
+    else
+      @pool[prefix] = new UUID prefix
+
+_uid = new UUIDPool()
+
+path2name = (path) ->
+  full = Path.resolve path
+  n1 = (Path.basename full).split('.')[0].trim()
+  if n1.length is 0
+    Path.basename Path.dirname full
+
 
 _flatmap = (list, iteree) ->
   _.reduce (_.map list, iteree), ((x, y) -> x.concat(y)), []
@@ -108,7 +135,11 @@ class ProcedureRegistry
         {@type, @model, @name, @description, @target, @action, @dependencies, @meta} = options
         task @name, @description, ->
           _runProcedure(reg, @name)
+        @dependencies = _.map @dependencies, (d) -> if _.isString d then d else d.getName()
         reg[@name] = @
+
+      getName: () ->
+        @name
 
       getMeta: (key) ->
         try
@@ -152,26 +183,8 @@ getImageMTime = (tag) ->
   else
     -1
 
-isPulled = (path) ->
-  not ((execSync "bash", [],
-    input: """
-      cd #{path}
-      LOCAL=$(git rev-parse @{0})
-      REMOTE=$(git rev-parse @{u})
-      BASE=$(git merge-base @ @{u})
-
-      if [ $LOCAL = $REMOTE ]; then
-          echo "Up-to-date"
-      elif [ $LOCAL = $BASE ]; then
-          echo "Need to pull"
-      elif [ $REMOTE = $BASE ]; then
-          echo "Need to push"
-      else
-          echo "Diverged"
-      fi
-    '
-    """
-  ).toString() is "Need to pull")
+gitUpToDate = (path) ->
+  (execSync "bash -c 'cd #{path}; git fetch --dry-run 2>&1'").toString() is ""
 
 findDockerTag = (path) ->
   TAGPTN = '--TAG:'
@@ -197,7 +210,7 @@ gitClone = (path, urls) ->
       null
 
 gitPull = (path) ->
-  launcher "git", ["clone", url, path],
+  launcher "git", ["pull"],
     cwd: path
 
 # -------------- Task Utility
@@ -231,15 +244,19 @@ ImageFrom = (obj, dependencies, name, options) ->
   MakingImage name ? "img-" + (Path.basename path), path, dependencies
   
 
-GitCache = (name, urls, path) ->
-  path ?= name
-  path = Path.resolve path
+GitCache = (urls, name, obj) ->
+  name ?= path2name urls[0]
+  obj ?= name
+  if _.isString obj
+    path = Path.resolve obj
+  else
+    path = Path.resolve "#{(obj.getMeta 'path')}/#{name}"
   new Procedure 
     model: 'GitCache'
     type: 'major'
     name: name
     description: "Cloning the code repo from #{urls} to #{path}"
-    target: -> (isDir path) and (isPulled path)
+    target: -> (isDir path) and (gitUpToDate path)
     action: -> 
       if isDir path
         gitPull path
@@ -270,18 +287,26 @@ task "help", "Print more details about the Cakefile", ->
 # -------------- Definition of Tasks
 
 
-ckanbaseimg = ImageFrom (GitCache 'ckan-docker-base', 
-    ['../ckan-docker-base/.git', 'https://github.com/spacelis/ckan-docker-base.git'], 
-    'build/ckan-docker-base'), []
+ckanbaseimg = ImageFrom (GitCache ['../ckan-docker-base/.git', 
+                                   'https://github.com/spacelis/ckan-docker-base.git'], 
+  'build/ckan-docker-base', 'ckan-docker-base')
 
-ckandevimg = ImageFrom (GitCache 'ckan-docker-dev', [".git"], 'build/ckan-docker-dev'), [], 'ckandevimg'
+dockerdev = (GitCache [".git"], 'ckan-docker-dev', 'build/ckan-docker-dev')
+
+
+ckandevimg = ImageFrom dockerdev, [
+  GitCache ["../ckan/.git"], null, dockerdev
+  GitCache ["../ckan-datapusher-service/.git"], null, dockerdev
+  GitCache ["../ckan-service-provider/.git"], null, dockerdev
+]
 
 new Procedure 
   name: 'build'
   type: 'major'
   description: "Build all images"
-  dependencies: [ckandevimg.name, ckanbaseimg.name]
+  dependencies: [ckandevimg]
 
+FigUp 'up', '.'
 
 # plainTask 'debug3', 'check the code',
 #   target: (-> console.log getImageMTime 'testbase'; true)
@@ -292,4 +317,4 @@ new Procedure
 #   action: (-> console.log 'Running consequent2')
 #
 # task 'debug', 'check the code', -> 
-#   console.log findDockerTag './build/ckan-docker-base/Dockerfile'
+#   console.log path2name '.git'
