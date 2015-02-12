@@ -266,12 +266,13 @@ GitCache = (urls, name, obj) ->
       path: path
 
 
-FigUp = (name, path) ->
+FigUp = (name, path, dependencies) ->
   new Procedure
     model: 'FigUp'
     type: 'major'
     name: name, 
-    description: "Fig up at #{path}",
+    description: "Fig up at #{path}"
+    dependencies: dependencies
     action: -> 
       launcher "fig", ["up"],
         cwd: path
@@ -291,22 +292,19 @@ ckanbaseimg = ImageFrom (GitCache ['../ckan-docker-base/.git',
                                    'https://github.com/spacelis/ckan-docker-base.git'], 
   'build/ckan-docker-base', 'ckan-docker-base')
 
-dockerdev = (GitCache [".git"], 'ckan-docker-dev', 'build/ckan-docker-dev')
+ckandevimg = ImageFrom (GitCache [".git"], 'ckan-docker-dev', 'build/ckan-docker-dev')
 
-
-ckandevimg = ImageFrom dockerdev, [
-  GitCache ["../ckan/.git"], null, dockerdev
-  GitCache ["../ckan-datapusher-service/.git"], null, dockerdev
-  GitCache ["../ckan-service-provider/.git"], null, dockerdev
-]
-
-new Procedure 
+build = new Procedure 
   name: 'build'
   type: 'major'
   description: "Build all images"
   dependencies: [ckandevimg]
 
-FigUp 'up', '.'
+FigUp 'up', '.', [build,
+  GitCache ["../ckan/.git"], null, 'ckan-docker-dev'
+  GitCache ["../ckan-datapusher-service/.git"], null, 'ckan-docker-dev'
+  GitCache ["../ckan-service-provider/.git"], null, 'ckan-docker-dev'
+  ]
 
 # plainTask 'debug3', 'check the code',
 #   target: (-> console.log getImageMTime 'testbase'; true)
