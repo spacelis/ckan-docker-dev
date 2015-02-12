@@ -120,18 +120,18 @@ class ProcedureRegistry
     else
       if dependencies?.length > 0
         _loginfo "#{ proc }: Depending on #{ dependencies }"
-        for proc in dependencies
-          _runProcedure reg, proc
+        for pr in dependencies
+          _runProcedure reg, pr
 
       _loginfo "#{ proc }: The action start"
       if action?
         action()
+        if !reg[proc].target?()
+          _logerr "#{ proc }: The target cannot be ensured through the action"
+          process.exit -1
         _logok "#{ proc }: The action complete"
       else
         _logwarn "#{proc}: The action is not defined."
-      if !reg[proc].target?()
-        _logerr "#{ proc }: The target cannot be ensured through the action"
-        process.exit -1
 
   getProcedure: (name) ->
     @_reg[name]
