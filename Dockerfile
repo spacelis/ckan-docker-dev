@@ -1,7 +1,7 @@
 FROM spacelis/ckan-docker-base
 # FROM phusion/baseimage:0.9.10
 # MAINTAINER Open Knowledge
-# --TAG: spacelis/ckan-docker-dev:v0.1
+# --TAG: spacelis/ckan-docker-dev
 #
 # # Disable SSH
 # RUN rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh
@@ -48,25 +48,25 @@ FROM spacelis/ckan-docker-base
 # Install CKAN
 # ADD ./requirements.txt $CKAN_HOME/src/ckan/requirements.txt
 # RUN $CKAN_HOME/bin/pip install -r $CKAN_HOME/src/ckan/requirements.txt
-ADD ./ckan $CKAN_HOME/src/ckan/
+RUN git clone https://github.com/spacelis/ckan.git $CKAN_HOME/src/ckan/
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan/
 RUN ln -s $CKAN_HOME/src/ckan/ckan/config/who.ini $CKAN_CONFIG/who.ini
 ADD ./apache.wsgi $CKAN_CONFIG/apache.wsgi
 ADD ./addsysadmin.exp $CKAN_CONFIG/addsysadmin.exp
 
 # Install CKAN service provider
-ADD ./ckan-service-provider $CKAN_HOME/src/ckan-service-provider
+RUN git clone https://github.com/spacelis/ckan-service-provider.git $CKAN_HOME/src/ckan-service-provider
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-service-provider
 
 # Install datapusher
-ADD ./datapusher-srv/ $CKAN_HOME/src/datapusher
+RUN git clone https://github.com/spacelis/ckan-datapusher-service.git $CKAN_HOME/src/datapusher
 # RUN $CKAN_HOME/bin/pip install -r $CKAN_HOME/src/datapusher/requirements.txt
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/datapusher/
 ADD ./datapusher-srv/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
 ADD ./datapusher-srv/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
 
 #Install Cdrcmeta
-ADD ./ckanext-cdrcmeta/ $CKAN_HOME/src/ckanext-cdrcmeta
+RUN git clone https://github.com/spacelis/ckanext-cdrcmeta.git $CKAN_HOME/src/ckanext-cdrcmeta
 # RUN $CKAN_HOME/bin/pip install -r $CKAN_HOME/src/datapusher/requirements.txt
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
