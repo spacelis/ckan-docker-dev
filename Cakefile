@@ -33,6 +33,22 @@ class UUIDPool
     else
       @pool[prefix] = new UUID prefix
 
+_loginfo = (msg) ->
+  console.log "#{chalk.gray "[INFO]"} #{msg}"
+
+_logwarn = (msg) ->
+  console.log "#{chalk.yellow "[WARN]"} #{msg}"
+
+_logerr = (msg) ->
+  console.log "#{chalk.red "[Error]"} #{msg}"
+
+_logok = (msg) ->
+  console.log "#{chalk.green "[OK]"} #{msg}"
+
+_logexec = (msg) ->
+  console.log "#{chalk.blue "[Exec]"} #{msg}"
+
+
 _uid = new UUIDPool()
 
 path2name = (path) ->
@@ -96,25 +112,25 @@ class ProcedureRegistry
     @_reg = {}
 
   _runProcedure = (reg, proc) ->
-    console.log "#{ proc }: Starting Task"
-    console.log "#{ proc }: Checking Target"
+    _loginfo "#{ proc }: Starting Task"
+    _loginfo "#{ proc }: Checking Target"
     {target, action, dependencies} = reg[proc]
     if target?()
-      console.log "#{ proc }: Target Holds ... SKIP"
+      _loginfo "#{ proc }: Target Holds ... SKIP"
     else
       if dependencies?.length > 0
-        console.log "#{ proc }: Depending on #{ dependencies }"
+        _loginfo "#{ proc }: Depending on #{ dependencies }"
         for proc in dependencies
           _runProcedure reg, proc
 
-      console.log "#{ proc }: The action start"
+      _loginfo "#{ proc }: The action start"
       if action?
         action()
-        console.log "#{ proc }: The action complete"
+        _logok "#{ proc }: The action complete"
       else
-        console.log "#{chalk.yellow "[Warn]"} #{proc}: The action is not defined."
+        _logwarn "#{proc}: The action is not defined."
       if !reg[proc].target?()
-        console.log "#{ chalk.red "[Error]"} #{ proc }: The target cannot be ensured through the action"
+        _logerr "#{ proc }: The target cannot be ensured through the action"
         process.exit -1
 
   getProcedure: (name) ->
@@ -166,7 +182,7 @@ Procedure = ProcRegistry.getProcedureClass()
 
 
 launcher = (cmd, args, options) ->
-  console.log "#{chalk.green "Exec [#{options?.cwd ? ""}]"}: #{cmd} #{ args.join ' '}"
+  _logexec "[#{options?.cwd ? ""}]: #{cmd} #{ args.join ' '}"
   options ?= {}
   options.stdio ?= [0, 0, 0]
   cmd = which(cmd) if which
@@ -202,9 +218,8 @@ dockerBuildImage = (dockerfile) ->
 gitClone = (path, urls) ->
   for url in urls
     try 
-      console.log "#{chalk.green "[GIT]"} Try pulling from #{url}"
       launcher "git", ["clone", url, path]
-      console.log "#{chalk.green "[GIT]"} Cloned into #{path} "
+      _logok "Cloned into #{path} "
     catch
       null
 
