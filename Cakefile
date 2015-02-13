@@ -48,8 +48,14 @@ _logok = (msg) ->
 _logexec = (msg) ->
   console.log "#{chalk.blue "[Exec]"} #{msg}"
 
+exec = (bashcmd, cwd) ->
+  output = (execSync "bash -c '#{bashcmd}'", cwd: cwd).toString().split '\n' ? []
+  if output.length is 1 and output[0].trim() is ""
+    []
+  else
+    _.map output, (s) -> s.trim()
 
-_uid = new UUIDPool()
+_uid = new UUIDPool() 
 
 path2name = (path) ->
   full = Path.resolve path
@@ -126,12 +132,14 @@ class ProcedureRegistry
       _loginfo "#{ proc }: The action start"
       if action?
         action()
-        if !reg[proc].target?()
+        if !target?
+          _logwarn "#{proc}: No target ensure"
+        else if !target?()
           _logerr "#{ proc }: The target cannot be ensured through the action"
           process.exit -1
         _logok "#{ proc }: The action complete"
       else
-        _logwarn "#{proc}: The action is not defined."
+        _logwarn "#{proc}: The action is not defined"
 
   getProcedure: (name) ->
     @_reg[name]
@@ -161,6 +169,7 @@ class ProcedureRegistry
           @meta[key]
         catch
           null
+
   info: () ->
     for name in @allNames()
       pr = @getProcedure name
@@ -192,14 +201,14 @@ launcher = (cmd, args, options) ->
 # ------------- project specific
 
 getImageMTime = (tag) ->
-  imageId = (execSync "bash -c 'docker history --no-trunc -q #{tag} | head -1'").toString()
-  if !(imageId.length is 0)
-    parseInt execSync "bash -c 'sudo stat -c %Y /var/lib/docker/graph/#{ String imageId }'"
-  else
+  try
+    imageId = (exec "docker history --no-trunc -q #{tag}")[0]
+    parseInt exec "sudo stat -c %Y /var/lib/docker/graph/#{ imageId }"
+  catch
     -1
 
 gitUpToDate = (path) ->
-  (execSync "bash -c 'cd #{path}; git fetch --dry-run 2>&1'").toString() is ""
+  (exec "cd #{path}; git fetch --dry-run 2>&1").length is 0
 
 findDockerTag = (path) ->
   TAGPTN = '--TAG:'
@@ -293,6 +302,18 @@ FigUp = (name, path, dependencies) ->
     meta:
       path: path
 
+FigClean = (path, name) ->
+  name ?= 'figclean'
+  new Procedure
+    model: 'FigClean'
+    type: 'major'
+    name: name, 
+    description: "Clean the container, volumes created by FigUp"
+    action: -> 
+      exec 'yes 2> /dev/null | fig rm', path
+      exec 'sudo `which clear_docker_volumes`'
+    meta:
+      path: path
 # -------------- Definition of Global Tasks
 
 
@@ -320,6 +341,7 @@ FigUp 'up', '.', [build,
   GitCache ["../ckan-service-provider/.git"], null, 'ckan-docker-dev'
   ]
 
+FigClean '.'
 # plainTask 'debug3', 'check the code',
 #   target: (-> console.log getImageMTime 'testbase'; true)
 #   action: (-> console.log 'Running consequent3')
