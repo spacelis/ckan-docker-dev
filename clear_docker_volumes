@@ -31,8 +31,10 @@ function delete_volumes() {
                                 echo Would have deleted ${dir}
                         fi
                 fi
-        else
+        else 
+          if [[ "${dir}" != "*" ]]; then
                 echo Not a volume ${dir}
+          fi
         fi
   done
 }
