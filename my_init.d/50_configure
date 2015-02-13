@@ -15,6 +15,8 @@ abort () {
 }
 
 write_config () {
+  ensure_package_install
+
   "$CKAN_HOME"/bin/paster make-config ckan "$CONFIG"
 
   "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -s DEFAULT -e \
@@ -35,6 +37,14 @@ write_config () {
   if [ -n "$CKAN_ERROR_EMAIL" ]; then
     sed -i -e "s&^#email_to.*&email_to = ${CKAN_ERROR_EMAIL}&" "$CONFIG"
   fi
+}
+
+ensure_package_install () {
+  for pkg in "$CKAN_HOME"/src/*; do
+    if [ ! -e "$CKAN_HOME"/src/ckan/.egg-info ]; then
+      "$CKAN_HOME"/bin/pip install -e $pkg
+    fi
+  done
 }
 
 # link_postgres_url(user, pass, db)
