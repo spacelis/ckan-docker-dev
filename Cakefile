@@ -311,7 +311,7 @@ FigClean = (path, name) ->
     description: "Clean the container, volumes created by FigUp"
     action: -> 
       exec 'yes 2> /dev/null | fig rm', path
-      exec 'sudo `which clear_docker_volumes`'
+      exec 'sudo $(which clear_docker_volumes) 1>&2', path
     meta:
       path: path
 # -------------- Definition of Global Tasks
