@@ -35,8 +35,8 @@ RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-dashboard $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-dashboard/
 
 #Install dashboard
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-viewhelpsers $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-viewhelpsers/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-viewhelpers $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-viewhelpers/
 
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
