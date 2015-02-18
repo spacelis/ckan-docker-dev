@@ -4,25 +4,25 @@ MAINTAINER CDRC
 
 
 
+ADD ./gitpkg_install.sh $CKAN_HOME/bin
 # Install CKAN
-RUN git clone https://github.com/spacelis/ckan.git $CKAN_HOME/src/ckan/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan/
 RUN ln -s $CKAN_HOME/src/ckan/ckan/config/who.ini $CKAN_CONFIG/who.ini
 ADD ./apache.wsgi $CKAN_CONFIG/apache.wsgi
 ADD ./addsysadmin.exp $CKAN_CONFIG/addsysadmin.exp
 
 # Install CKAN service provider
-RUN git clone https://github.com/spacelis/ckan-service-provider.git $CKAN_HOME/src/ckan-service-provider
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-service-provider $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-service-provider
 
 # Install datapusher
-RUN git clone https://github.com/spacelis/ckan-datapusher-service.git $CKAN_HOME/src/datapusher
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/datapusher/
-RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
-RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-datapusher-service $CKAN_HOME/src
+RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
+RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
 
 #Install Cdrcmeta
-RUN git clone https://github.com/spacelis/ckanext-cdrcmeta.git $CKAN_HOME/src/ckanext-cdrcmeta
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrcmeta $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
 # Configure apache
