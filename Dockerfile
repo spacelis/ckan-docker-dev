@@ -4,7 +4,8 @@ MAINTAINER CDRC
 
 
 
-ADD ./gitpkg_install.sh $CKAN_HOME/bin
+ADD ./gitpkg_install.sh $CKAN_HOME/bin/gitpkg_install.sh
+RUN mkdir -p $CKAN_HOME/src
 # Install CKAN
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan/
