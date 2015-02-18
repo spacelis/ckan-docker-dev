@@ -221,6 +221,7 @@ Docker = (->
     try
       image = imageByTag tag
       if image?
+        _loginfo "Checking the image ..."
         parseInt exec "sudo stat -c %Y #{image}"
       else
         throw new Error("Image not found")
@@ -320,6 +321,7 @@ MakingImage = (name, path, dependencies, meta) ->
     action: ->
       Docker.buildImage meta.dockerfile
       image = Docker.imageByTag Docker.determineTag meta.dockerfile
+      _loginfo "Checking the image ..."
       exec "sudo touch #{image}"
     dependencies: dependencies
     meta: meta
@@ -381,6 +383,7 @@ FigClean = (path, name) ->
     description: "Clean the container, volumes created by FigUp"
     action: ->
       exec 'yes 2> /dev/null | fig rm', path
+      _loginfo "Removing the volumes ..."
       exec 'sudo `which clear_docker_volumes`', path
     meta:
       path: path
