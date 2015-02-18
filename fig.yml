@@ -6,6 +6,7 @@ src:
     - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
     - ../ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
     - ../ckanext-cdrc:/user/lib/ckan/default/src/ckanext-cdrc
+    - ../ckanext-dashboard:/user/lib/ckan/default/src/ckanext-dashboard
 
 ckan:
   image: spacelis/ckan-docker-dev

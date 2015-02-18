@@ -26,9 +26,13 @@ RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py 
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrcmeta $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
-#Install Cdrcmeta
+#Install Cdrc
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrc $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrc/
+
+#Install dashboard
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-dashboard $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-dashboard/
 
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
