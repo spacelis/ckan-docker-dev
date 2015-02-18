@@ -28,25 +28,29 @@ class UUIDPool
     @pool = {}
 
   get: (prefix) ->
-    if @pool[prefix]? 
-      @pool[prefix] 
+    if @pool[prefix]?
+      @pool[prefix]
     else
       @pool[prefix] = new UUID prefix
 
 _loginfo = (msg) ->
-  console.log "#{chalk.gray "[INFO]"} #{msg}"
+  console.log "#{chalk.blue "[INFO]"} #{msg}"
 
 _logwarn = (msg) ->
   console.log "#{chalk.yellow "[WARN]"} #{msg}"
 
 _logerr = (msg) ->
-  console.log "#{chalk.red "[Error]"} #{msg}"
+  console.log "#{chalk.bgRed "[Error]"} #{msg}"
 
 _logok = (msg) ->
-  console.log "#{chalk.green "[OK]"} #{msg}"
+  console.log "#{chalk.white "[OK]"} #{msg}"
 
 _logexec = (msg) ->
-  console.log "#{chalk.blue "[Exec]"} #{msg}"
+  console.log "#{chalk.green "[Exec]"} #{msg}"
+
+_debug = (obj) ->
+  console.log "#{chalk.black.bgCyan "[Debug]"} #{obj}"
+  obj
 
 exec = (bashcmd, cwd) ->
   output = (execSync "bash -c '#{bashcmd}'", cwd: cwd).toString().split '\n' ? []
@@ -55,7 +59,7 @@ exec = (bashcmd, cwd) ->
   else
     _.map output, (s) -> s.trim()
 
-_uid = new UUIDPool() 
+_uid = new UUIDPool()
 
 path2name = (path) ->
   full = Path.resolve path
@@ -68,17 +72,17 @@ _flatmap = (list, iteree) ->
   _.reduce (_.map list, iteree), ((x, y) -> x.concat(y)), []
 
 _timestamp = (d) ->
-  FS.statSync(d).mtime.getTime
+  FS.statSync(d).mtime.getTime(d) / 1000
 
-timestampChanged = (targets, sources) ->
-  if (_.every targets, (x) -> x > 0)
-    (_.min sources) > (_.max targets)
+timestampUpToDate = (targets, sources) ->
+  if (_.every targets, (x) -> x > 0) and (_.every sources, (x) -> x > 0)
+    (_.min targets) >= (_.max sources)
   else
     false
 
-fileChanged = (targets, sources) ->
-  timestampChanged (_.map targets, _timestamp), (_.map sources, _timestamp)
-  
+fileUpToDate = (targets, sources) ->
+  timestampUpToDate (_.map targets, _timestamp), (_.map sources, _timestamp)
+
 allFiles = (path) ->
   try
     if (FS.statSync path)?.isDirectory()
@@ -106,7 +110,7 @@ isFile = (path) ->
 # ------------- Task management
 #
 ###
-// {'task1': {'dependencies': ['task_x', 'task_y'], 'target': function(), 'action': function() }} 
+// {'task1': {'dependencies': ['task_x', 'task_y'], 'target': function(), 'action': function() }}
 ###
 
 
@@ -120,25 +124,27 @@ class ProcedureRegistry
   _runProcedure = (reg, proc) ->
     _loginfo "#{ proc }: Starting Task"
     _loginfo "#{ proc }: Checking Target"
-    {target, action, dependencies} = reg[proc]
+    {target, action, dependencies, meta} = reg[proc]
+
+    if dependencies?.length > 0
+      _loginfo "#{ proc }: Depending on #{ dependencies }"
+      for pr in dependencies
+        _runProcedure reg, pr
+
     if target?()
       _loginfo "#{ proc }: Target Holds ... SKIP"
     else
-      if dependencies?.length > 0
-        _loginfo "#{ proc }: Depending on #{ dependencies }"
-        for pr in dependencies
-          _runProcedure reg, pr
-
-      _loginfo "#{ proc }: The action start"
       if action?
+        _loginfo "#{ proc }: The action start"
         action()
-        if !target?
-          _logwarn "#{proc}: No target ensure"
-        else if !target?()
-          _logerr "#{ proc }: The target cannot be ensured through the action"
-          process.exit -1
+        if ! meta?._supress_no_target?
+          if !target?
+            _logwarn "#{proc}: No target ensure"
+          else if !target?()
+            _logerr "#{ proc }: The target cannot be ensured through the action"
+            process.exit -1
         _logok "#{ proc }: The action complete"
-      else
+      else if ! meta?._supress_no_action?
         _logwarn "#{proc}: The action is not defined"
 
   getProcedure: (name) ->
@@ -174,7 +180,7 @@ class ProcedureRegistry
     for name in @allNames()
       pr = @getProcedure name
       if pr.type is 'major'
-        console.log """ 
+        console.log """
           #{chalk.green name} : #{chalk.blue pr.dependencies ? ''}
             #{pr.description}
         """
@@ -196,64 +202,125 @@ launcher = (cmd, args, options) ->
   options.stdio ?= [0, 0, 0]
   cmd = which(cmd) if which
   app = spawnSync cmd, args, options
+  if app.status != 0
+    _logerr "Cmd returned #{app.status} #{cmd} #{args.join ' '}"
+    process.exit -1
 
 
 # ------------- project specific
 
-getImageMTime = (tag) ->
-  try
-    imageId = (exec "docker history --no-trunc -q #{tag}")[0]
-    parseInt exec "sudo stat -c %Y /var/lib/docker/graph/#{ imageId }"
-  catch
-    -1
-
-gitUpToDate = (path) ->
-  (exec "cd #{path}; git fetch --dry-run 2>&1").length is 0
-
-findDockerTag = (path) ->
-  TAGPTN = '--TAG:'
-  content = FS.readFileSync(path).toString().split('\n')
-  for l in content
-    pos = l.indexOf(TAGPTN) 
-    if pos >= 0
-      return l.slice(pos + TAGPTN.length).trim()
-  null
-
-dockerBuildImage = (dockerfile) ->
-  tag = findDockerTag dockerfile
-  launcher "docker", ["build", "-t", tag, '.'],
-    cwd: Path.dirname dockerfile
-
-gitClone = (path, urls) ->
-  for url in urls
-    try 
-      launcher "git", ["clone", url, path]
-      _logok "Cloned into #{path} "
+Docker = (->
+  imageByTag = (tag) ->
+    try
+      imageId = (exec "docker history --no-trunc -q #{tag}")[0]
+      "/var/lib/docker/graph/#{ imageId }"
     catch
       null
 
-gitPull = (path) ->
-  launcher "git", ["pull"],
-    cwd: path
+  imageMTime = (tag) ->
+    try
+      image = imageByTag tag
+      if image?
+        parseInt exec "sudo stat -c %Y #{image}"
+      else
+        throw new Error("Image not found")
+    catch
+      -1
 
+  determineTag = (path) ->
+    TAGPTN = '--TAG:'
+    content = FS.readFileSync(path).toString().split('\n')
+    for l in content
+      pos = l.indexOf(TAGPTN)
+      if pos >= 0
+        return l.slice(pos + TAGPTN.length).trim()
+    null
+
+  buildImage = (dockerfile) ->
+    tag = determineTag dockerfile
+    launcher "docker", ["build", "-t", tag, '.'],
+      cwd: Path.dirname dockerfile
+
+  clearImages = ->
+    _.each (exec "docker images -q --no-trunc --filter 'dangling=true'"), (i) ->
+      try
+        if i?.length > 0
+          _loginfo "Deleting image #{i}"
+          exec "docker rmi #{i}"
+
+  cleanContainers = ->
+    _.each (exec "docker ps -qf 'status=exited' --no-trunc"), (i) ->
+      try
+        if i?.length > 0
+          _loginfo "Deleting container #{i}"
+          exec "docker rm #{i}"
+
+
+  new Procedure
+    model: "Docker"
+    type: "major"
+    name: "rmi",
+    description: "Clear non-tagged dock images (most of time intermediate images)"
+    action: ->
+      clearImages()
+
+  new Procedure
+    model: "Docker"
+    type: "major"
+    name: "rm",
+    description: "Clear non-tagged dock images (most of time intermediate images)"
+    action: ->
+      cleanContainers()
+
+
+  imageByTag: imageByTag,
+  imageMTime: imageMTime,
+  determineTag: determineTag,
+  buildImage: buildImage
+)()
+
+Git = (->
+
+  isUpToDate = (path) ->
+    (exec "cd #{path}; git fetch --dry-run 2>&1").length is 0
+
+  clone = (path, urls, branch) ->
+    for url in urls
+      try
+        launcher "git", ["clone", "-b", branch, url, path]
+        _logok "Cloned into #{path} "
+      catch
+        null
+
+  pull = (path) ->
+    launcher "git", ["pull"],
+      cwd: path
+
+  isUpToDate: isUpToDate,
+  clone: clone,
+  pull: pull
+)()
 # -------------- Task Utility
 #
 MakingImage = (name, path, dependencies, meta) ->
   meta ?= {}
   meta.path = Path.resolve path
   meta.dockerfile = meta.path + "/Dockerfile"
-  new Procedure 
+  new Procedure
     model: 'MakingImage'
     type: 'major'
     name: name
     description: "Build the image from #{ path }"
-    target: -> 
+    target: ->
       try
-        tag = findDockerTag meta.dockerfile
-        timestampChanged [ getImageMTime tag ], _.map normalFiles path, _timestamp
+        tag = Docker.determineTag meta.dockerfile
+        timestampUpToDate [ Docker.imageMTime tag ], _.map (normalFiles path), _timestamp
       catch
         false
-    action: -> dockerBuildImage meta.dockerfile
+    action: ->
+      Docker.buildImage meta.dockerfile
+      image = Docker.imageByTag Docker.determineTag meta.dockerfile
+      exec "sudo touch #{image}"
     dependencies: dependencies
     meta: meta
 
@@ -264,27 +331,28 @@ ImageFrom = (obj, dependencies, name, options) ->
     dependencies.push(obj.name)
   else
     path = obj
-  MakingImage name ? "img-" + (Path.basename path), path, dependencies
-  
+  MakingImage name ? 'img-' + (Path.basename path), path, dependencies
 
-GitCache = (urls, name, obj) ->
+
+GitCache = (urls, name, obj, branch) ->
+  branch ?= 'master'
   name ?= path2name urls[0]
   obj ?= name
   if _.isString obj
     path = Path.resolve obj
   else
     path = Path.resolve "#{(obj.getMeta 'path')}/#{name}"
-  new Procedure 
+  new Procedure
     model: 'GitCache'
     type: 'major'
     name: name
     description: "Cloning the code repo from #{urls} to #{path}"
-    target: -> (isDir path) and (gitUpToDate path)
-    action: -> 
+    target: -> (isDir path) and (Git.isUpToDate path)
+    action: ->
       if isDir path
-        gitPull path
+        Git.pull path
       else
-        gitClone path, urls
+        Git.clone path, urls, branch
     meta:
       path: path
 
@@ -293,27 +361,31 @@ FigUp = (name, path, dependencies) ->
   new Procedure
     model: 'FigUp'
     type: 'major'
-    name: name, 
+    name: name,
     description: "Fig up at #{path}"
     dependencies: dependencies
-    action: -> 
+    action: ->
       launcher "fig", ["up"],
         cwd: path
     meta:
       path: path
+      _supress_no_target: true
+
 
 FigClean = (path, name) ->
   name ?= 'figclean'
   new Procedure
     model: 'FigClean'
     type: 'major'
-    name: name, 
+    name: name,
     description: "Clean the container, volumes created by FigUp"
-    action: -> 
+    action: ->
       exec 'yes 2> /dev/null | fig rm', path
-      exec 'sudo $(which clear_docker_volumes) 1>&2', path
+      exec 'sudo `which clear_docker_volumes`', path
     meta:
       path: path
+      _supress_no_target: true
+
 # -------------- Definition of Global Tasks
 
 
@@ -323,17 +395,22 @@ task "help", "Print more details about the Cakefile", ->
 # -------------- Definition of Tasks
 
 
-ckanbaseimg = ImageFrom (GitCache ['../ckan-docker-base/.git', 
-                                   'https://github.com/spacelis/ckan-docker-base.git'], 
+ckanbaseimg = ImageFrom (GitCache ['../ckan-docker-base/.git',
+                                   'https://github.com/spacelis/ckan-docker-base.git'],
   'build/ckan-docker-base', 'ckan-docker-base')
 
-ckandevimg = ImageFrom (GitCache [".git"], 'ckan-docker-dev', 'build/ckan-docker-dev')
+ckandevimg = ImageFrom (GitCache [".git"], 'ckan-docker-dgu', 'build/ckan-docker-dgu')
 
-build = new Procedure 
+ckansolrimg = ImageFrom "./docker-solr"
+
+build = new Procedure
   name: 'build'
   type: 'major'
   description: "Build all images"
   dependencies: [ckandevimg]
+  meta:
+    _supress_no_target: true
+    _supress_no_action: true
 
 FigUp 'up', '.', [build,
   GitCache ["../ckan/.git"], null, 'ckan-docker-dev'
@@ -343,12 +420,12 @@ FigUp 'up', '.', [build,
 
 FigClean '.'
 # plainTask 'debug3', 'check the code',
-#   target: (-> console.log getImageMTime 'testbase'; true)
+#   target: (-> console.log imageMTime 'testbase'; true)
 #   action: (-> console.log 'Running consequent3')
 #
 # plainTask 'debug2', 'check the code',
 #   target: (-> console.log 'Checking target2'; true)
 #   action: (-> console.log 'Running consequent2')
 #
-# task 'debug', 'check the code', -> 
+# task 'debug', 'check the code', ->
 #   console.log path2name '.git'
