@@ -384,7 +384,7 @@ FigClean = (path, name) ->
     action: ->
       exec 'yes 2> /dev/null | fig rm', path
       _loginfo "Removing the volumes ..."
-      exec 'sudo `which clear_docker_volumes`', path
+      exec 'sudo `which clear_docker_volumes` 2>&1', path
     meta:
       path: path
       _supress_no_target: true
