@@ -41,7 +41,7 @@ write_config () {
 
 ensure_package_install () {
   for pkg in "$CKAN_HOME"/src/*; do
-    if [ ! -e "$CKAN_HOME"/src/ckan/.egg-info ]; then
+    if [ ! -e "$pkg/.egg-info ]; then
       "$CKAN_HOME"/bin/pip install -e $pkg
     fi
   done
