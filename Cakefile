@@ -399,7 +399,7 @@ ckanbaseimg = ImageFrom (GitCache ['../ckan-docker-base/.git',
                                    'https://github.com/spacelis/ckan-docker-base.git'],
   'build/ckan-docker-base', 'ckan-docker-base')
 
-ckandevimg = ImageFrom (GitCache [".git"], 'ckan-docker-dgu', 'build/ckan-docker-dgu')
+ckandevimg = ImageFrom (GitCache [".git"], 'ckan-docker-dev', 'build/ckan-docker-dev')
 
 ckansolrimg = ImageFrom "./docker-solr"
 
