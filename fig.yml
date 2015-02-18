@@ -9,13 +9,14 @@ ckan:
     - ../ckan:/usr/lib/ckan/default/src/ckan
     - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
     - ../ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
+    - ../ckanext-cdrc:/user/lib/ckan/default/src/ckanext-cdrc
 
 solr:
-  image: spacelis/ckan_solr
+  image: spacelis/ckan-docker-solr
   ports:
     - 8983:8983
 
 db:
-  image: spacelis/ckan_postgresql
+  image: spacelis/ckan-docker-postgresql
   ports:
     - 5432:5432
