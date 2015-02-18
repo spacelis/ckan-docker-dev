@@ -1,3 +1,12 @@
+src:
+  image: ubuntu
+  command: true
+  volumes:
+    - ../ckan:/usr/lib/ckan/default/src/ckan
+    - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
+    - ../ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
+    - ../ckanext-cdrc:/user/lib/ckan/default/src/ckanext-cdrc
+
 ckan:
   image: spacelis/ckan-docker-dev
   links:
@@ -5,16 +14,15 @@ ckan:
     - solr
   ports:
     - 80:80
-  volumes:
-    - ../ckan:/usr/lib/ckan/default/src/ckan
-    - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
-    - ../ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
-    - ../ckanext-cdrc:/user/lib/ckan/default/src/ckanext-cdrc
+  volumes_from:
+    - src
 
 solr:
   image: spacelis/ckan-docker-solr
   ports:
     - 8983:8983
+  volumes_from:
+    - src
 
 db:
   image: spacelis/ckan-docker-postgresql
