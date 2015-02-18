@@ -26,6 +26,10 @@ RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py 
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrcmeta $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
+#Install Cdrcmeta
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrc $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrc/
+
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.conf /etc/apache2/sites-available/ckan-datapusher-service.conf
