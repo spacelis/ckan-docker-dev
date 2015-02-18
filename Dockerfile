@@ -28,13 +28,13 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
 
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
-RUN cp $CKAN_HOME/src/datapusher/deployment/datapusher.conf /etc/apache2/sites-available/datapusher.conf
+RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.conf /etc/apache2/sites-available/ckan-datapusher-service.conf
 RUN echo "Listen 8080" > /etc/apache2/ports.conf
 RUN echo "Listen 8800" >> /etc/apache2/ports.conf
 RUN echo "StartServers 1" >> /etc/apache2/apache2.conf
 RUN echo "ServerLimit 1" >> /etc/apache2/apache2.conf
 RUN a2ensite ckan
-RUN a2ensite datapusher
+RUN a2ensite ckan-datapusher-service
 RUN a2dissite 000-default
 
 # Configure nginx
