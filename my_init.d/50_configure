@@ -29,6 +29,7 @@ write_config () {
       "email_to = wen.li@ucl.ac.uk" \
       "ckan.plugins = datastore datapusher pdf_view recline_view text_view viewhelpers dashboard_preview cdrcmeta cdrc" \
       "ckan.site_url = http://localhost" \
+      "ckan.homepage_style = 3" \
       "ckan.datapusher.url = http://localhost:8800" \
       "ckan.datastore.write_url = $(link_postgres_url $CKAN_DATASTORE_WRITER $CKAN_DATASTORE_WRITEPASS $CKAN_DATASTORE_DB)" \
       "ckan.datastore.read_url = $(link_postgres_url $CKAN_DATASTORE_READER $CKAN_DATASTORE_READPASS $CKAN_DATASTORE_DB)" \
