@@ -9,5 +9,5 @@ fi
 CONFIG="${CKAN_CONFIG}/ckan.ini"
 
 "$CKAN_HOME"/bin/pip install -r "$CKAN_HOME"/src/ckan/dev-requirements.txt
-"$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=test-core.ini ckan/new_tests
+"$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons="$CKAN_HOME"/src/ckan/test-core.ini ckan/new_tests
 shutdown -h now
