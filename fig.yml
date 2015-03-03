@@ -18,6 +18,8 @@ ckan:
     - 80:80
   volumes_from:
     - src
+  environment:
+    CKAN_TEST_MODE: 1
 
 solr:
   image: spacelis/ckan-docker-solr
