@@ -64,6 +64,3 @@ link_solr_url () {
 }
 
 write_config
-
-export -f link_solr_url
-export -f link_postgres_url
