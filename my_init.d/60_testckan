@@ -31,15 +31,13 @@ link_solr_url () {
 "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -e \
     "sqlalchemy.url = $(link_postgres_url)" \
     "solr_url = $(link_solr_url)" \
-    "ckan.storage_path = /var/lib/ckan" \
     "ckan.site_url = http://localhost" \
     "ckan.datapusher.url = http://localhost:8800" \
     "ckan.datastore.write_url = $(link_postgres_url $CKAN_DATASTORE_WRITER $CKAN_DATASTORE_WRITEPASS $CKAN_DATASTORE_DB)" \
     "ckan.datastore.read_url = $(link_postgres_url $CKAN_DATASTORE_READER $CKAN_DATASTORE_READPASS $CKAN_DATASTORE_DB)" \
-    "error_email_from = ${CKAN_ERROR_EMAIL_FROM:-ckan@example.org}"
 
 # Running the tests
-"$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG ckan/new_tests
+"$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG "$CKAN_HOME"/src/ckan/ckan/new_tests
 
 # Shutdown the container
 shutdown -h now
