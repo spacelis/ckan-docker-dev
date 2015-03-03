@@ -4,10 +4,10 @@ src:
   volumes:
     - ../ckan:/usr/lib/ckan/default/src/ckan
     - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
-    - ../ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckanext-cdrcmeta
-    - ../ckanext-cdrc:/usr/lib/ckan/default/src/ckanext-cdrc
-    - ../ckanext-viewhelpers:/usr/lib/ckan/default/src/ckanext-viewhelpers
-    - ../ckanext-dashboard:/usr/lib/ckan/default/src/ckanext-dashboard
+    - ../ckan-ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckan-ckanext-cdrcmeta
+    - ../ckan-ckanext-cdrc:/usr/lib/ckan/default/src/ckan-ckanext-cdrc
+    - ../ckan-ckanext-viewhelpers:/usr/lib/ckan/default/src/ckan-ckanext-viewhelpers
+    - ../ckan-ckanext-dashboard:/usr/lib/ckan/default/src/ckan-ckanext-dashboard
 
 ckan:
   image: spacelis/ckan-docker-dev

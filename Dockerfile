@@ -23,20 +23,20 @@ RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.wsgi $CKAN_C
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
 
 #Install Cdrcmeta
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrcmeta $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrcmeta/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-cdrcmeta $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-cdrcmeta/
 
 #Install Cdrc
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-cdrc $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-cdrc/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-cdrc $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-cdrc/
 
 #Install dashboard
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-dashboard $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-dashboard/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-dashboard $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-dashboard/
 
 #Install dashboard
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckanext-viewhelpers $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckanext-viewhelpers/
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-viewhelpers $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-viewhelpers/
 
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
