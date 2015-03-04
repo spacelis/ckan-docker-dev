@@ -8,6 +8,7 @@ src:
     - ../ckan-ckanext-cdrc:/usr/lib/ckan/default/src/ckan-ckanext-cdrc
     - ../ckan-ckanext-viewhelpers:/usr/lib/ckan/default/src/ckan-ckanext-viewhelpers
     - ../ckan-ckanext-dashboard:/usr/lib/ckan/default/src/ckan-ckanext-dashboard
+    - ../ckan-ckanext-scheming:/usr/lib/ckan/default/src/ckan-ckanext-scheming
 
 ckan:
   image: spacelis/ckan-docker-dev
