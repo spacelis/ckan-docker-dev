@@ -27,12 +27,18 @@ write_config () {
       "solr_url = $(link_solr_url)" \
       "ckan.storage_path = /var/lib/ckan" \
       "email_to = wen.li@ucl.ac.uk" \
-      "ckan.plugins = datastore datapusher pdf_view recline_view text_view viewhelpers dashboard_preview cdrcmeta cdrc" \
+      "ckan.plugins = scheming_datasets datastore datapusher pdf_view recline_view text_view viewhelpers dashboard_preview cdrc" \
       "ckan.site_url = http://localhost" \
       "ckan.datapusher.url = http://localhost:8800" \
       "ckan.datastore.write_url = $(link_postgres_url $CKAN_DATASTORE_WRITER $CKAN_DATASTORE_WRITEPASS $CKAN_DATASTORE_DB)" \
       "ckan.datastore.read_url = $(link_postgres_url $CKAN_DATASTORE_READER $CKAN_DATASTORE_READPASS $CKAN_DATASTORE_DB)" \
       "error_email_from = ${CKAN_ERROR_EMAIL_FROM:-ckan@example.org}"
+
+  "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -e \
+      "scheming.dataset_schemas = ckanext.cdrc:cdrc_dataset_schema.json" \
+      "scheming.presets = ckanext.scheming:presets.json" \
+      "scheming.dataset_fallback = false"
+
 
   if [ -n "$CKAN_ERROR_EMAIL" ]; then
     sed -i -e "s&^#email_to.*&email_to = ${CKAN_ERROR_EMAIL}&" "$CONFIG"

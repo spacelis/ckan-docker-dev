@@ -38,6 +38,10 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-dashboard/
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-viewhelpers $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-viewhelpers/
 
+#Install dashboard
+RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-scheming $CKAN_HOME/src
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-scheming/
+
 # Configure apache
 ADD ./apache.conf /etc/apache2/sites-available/ckan.conf
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.conf /etc/apache2/sites-available/ckan-datapusher-service.conf
