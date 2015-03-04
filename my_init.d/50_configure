@@ -34,7 +34,7 @@ write_config () {
       "ckan.datastore.read_url = $(link_postgres_url $CKAN_DATASTORE_READER $CKAN_DATASTORE_READPASS $CKAN_DATASTORE_DB)" \
       "error_email_from = ${CKAN_ERROR_EMAIL_FROM:-ckan@example.org}"
 
-  "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -e \
+  "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" \
       "scheming.dataset_schemas = ckanext.cdrc:cdrc_dataset_schema.json" \
       "scheming.presets = ckanext.scheming:presets.json" \
       "scheming.dataset_fallback = false"
