@@ -38,6 +38,3 @@ link_solr_url () {
 
 # Running the tests
 "$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG "$CKAN_HOME"/src/ckan/ckan/new_tests
-
-# Shutdown the container
-shutdown -h now
