@@ -19,8 +19,10 @@ write_config () {
 
   "$CKAN_HOME"/bin/paster make-config ckan "$CONFIG"
 
-  "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -s DEFAULT -e \
-      "debug = True"
+  if [ ${CKAN_DEBUG_MODE:-0} -eq 1 ]; then
+      "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -s DEFAULT -e \
+          "debug = True"
+  fi
 
   "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" -e \
       "sqlalchemy.url = $(link_postgres_url)" \
