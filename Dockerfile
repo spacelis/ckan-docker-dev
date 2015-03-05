@@ -2,7 +2,28 @@ FROM spacelis/ckan-docker-base
 MAINTAINER CDRC
 # --TAG: spacelis/ckan-docker-dev
 
+ENV CKAN_HOME /usr/lib/ckan/default
+ENV CKAN_CONFIG /etc/ckan/default
+ENV CKAN_DATA /var/lib/ckan
+ENV CKAN_ERROR_EMAIL_FROM ckan@example.org
+ENV CKAN_ERROR_EMAIL ckan@example.org
+ENV CKAN_ADMIN_USER ckan
+ENV CKAN_ADMIN_PASS ckan
 
+ENV CKAN_DATASTORE_READPASS datastore
+ENV CKAN_DATASTORE_WRITEPASS datastore
+ENV CKAN_DATASTORE_DB datastore
+ENV CKAN_DATASTORE_READER ds_reader
+ENV CKAN_DATASTORE_WRITER ds_writer
+
+ENV CKAN_DATAPUSHER_DB datapusher
+ENV CKAN_DATAPUSHER_PASS datapusher
+ENV CKAN_DATAPUSHER datapusher
+
+# Prepare virtualenv
+RUN virtualenv $CKAN_HOME
+RUN mkdir -p $CKAN_HOME $CKAN_CONFIG $CKAN_DATA
+RUN chown www-data:www-data $CKAN_DATA
 
 ADD ./gitpkg_install.sh $CKAN_HOME/bin/gitpkg_install.sh
 RUN mkdir -p $CKAN_HOME/src
