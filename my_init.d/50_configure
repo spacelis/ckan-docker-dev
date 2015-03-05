@@ -43,7 +43,8 @@ write_config () {
 
 
   if [ -n "$CKAN_ERROR_EMAIL" ]; then
-    sed -i -e "s&^#email_to.*&email_to = ${CKAN_ERROR_EMAIL}&" "$CONFIG"
+    "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" \
+        "email_to = ${CKAN_ERROR_EMAIL}"
   fi
 }
 
