@@ -4,6 +4,7 @@ src:
   volumes:
     - ../ckan:/usr/lib/ckan/default/src/ckan
     - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
+    - ../ckan-datapusher-service:/usr/lib/ckan/default/src/ckan-datapusher-service
     - ../ckan-ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckan-ckanext-cdrcmeta
     - ../ckan-ckanext-cdrc:/usr/lib/ckan/default/src/ckan-ckanext-cdrc
     - ../ckan-ckanext-viewhelpers:/usr/lib/ckan/default/src/ckan-ckanext-viewhelpers
