@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -eu
+# set -eu
 
 
 ensure_package_install () {
   for pkgsrc in "$CKAN_HOME"/src/*; do
-    echo "[InstallPKG] Checking Package in:" $pkgsrc
-    pkgname=$(cd $pkgsrc && "$CKAN_HOME"/bin/python $pkgsrc/setup.py --name)
-    isinstalled=$("$CKAN_HOME"/bin/pip list -e | grep $pkgname)
+    echo "[InstallPKG] Checking Package:" $pkgsrc
+    pkgname=$(cd $pkgsrc && "$CKAN_HOME"/bin/python setup.py --name)
+    isinstalled=$("$CKAN_HOME"/bin/pip list -e | grep -E "^$pkgname ")
     if [ -z "$isinstalled" ]; then
       echo "[InstallPKG] Installing $pkgsrc"
       "$CKAN_HOME"/bin/pip install -e $pkgsrc
