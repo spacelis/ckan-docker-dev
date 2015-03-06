@@ -42,6 +42,7 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-service-provider
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-datapusher-service $CKAN_HOME/src
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
+RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-datapusher-service
 
 #Install Cdrc
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-cdrc $CKAN_HOME/src
@@ -55,7 +56,7 @@ RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-dashboard/
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-viewhelpers $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-viewhelpers/
 
-#Install dashboard
+#Install scheming
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-scheming $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-scheming/
 
