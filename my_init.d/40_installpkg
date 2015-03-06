@@ -4,8 +4,11 @@ set -eu
 
 
 ensure_package_install () {
-  for pkg in "$CKAN_HOME"/src/*; do
-    "$CKAN_HOME"/bin/pip install -e $pkg
+  for pkgsrc in "$CKAN_HOME"/src/*; do
+    pkgname=`"$CKAN_HOME"/bin/python $pkgsrc/setup.py --name`
+    if [ -z $("$CKAN_HOME"/bin/pip freeze | grep $pkgname) ]; then
+      "$CKAN_HOME"/bin/pip install -e $pkgsrc
+    fi
   done
 }
 
