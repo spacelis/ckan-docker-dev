@@ -43,10 +43,6 @@ RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-datapusher-service $CKAN_HOME
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher.wsgi $CKAN_CONFIG/datapusher.wsgi
 RUN cp $CKAN_HOME/src/ckan-datapusher-service/deployment/datapusher_settings.py $CKAN_CONFIG/datapusher_settings.py
 
-#Install Cdrcmeta
-RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-cdrcmeta $CKAN_HOME/src
-RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-cdrcmeta/
-
 #Install Cdrc
 RUN $CKAN_HOME/bin/gitpkg_install.sh spacelis/ckan-ckanext-cdrc $CKAN_HOME/src
 RUN $CKAN_HOME/bin/pip install -e $CKAN_HOME/src/ckan-ckanext-cdrc/
