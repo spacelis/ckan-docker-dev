@@ -15,8 +15,6 @@ abort () {
 }
 
 write_config () {
-  ensure_package_install
-
   "$CKAN_HOME"/bin/paster make-config ckan "$CONFIG"
 
   if [ ${CKAN_DEBUG_MODE:-0} -eq 1 ]; then
@@ -46,12 +44,6 @@ write_config () {
     "$CKAN_HOME"/bin/paster --plugin=ckan config-tool "$CONFIG" \
         "email_to = ${CKAN_ERROR_EMAIL}"
   fi
-}
-
-ensure_package_install () {
-  for pkg in "$CKAN_HOME"/src/*; do
-    "$CKAN_HOME"/bin/pip install -e $pkg
-  done
 }
 
 # link_postgres_url(user, pass, db)

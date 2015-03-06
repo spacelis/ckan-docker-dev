@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -eu
+
+
+ensure_package_install () {
+  for pkg in "$CKAN_HOME"/src/*; do
+    "$CKAN_HOME"/bin/pip install -e $pkg
+  done
+}
+
+ensure_package_install
