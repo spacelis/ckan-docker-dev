@@ -5,7 +5,6 @@ src:
     - ../ckan:/usr/lib/ckan/default/src/ckan
     - ../ckan-service-provider:/usr/lib/ckan/default/src/ckan-service-provider
     - ../ckan-datapusher-service:/usr/lib/ckan/default/src/ckan-datapusher-service
-    - ../ckan-ckanext-cdrcmeta:/usr/lib/ckan/default/src/ckan-ckanext-cdrcmeta
     - ../ckan-ckanext-cdrc:/usr/lib/ckan/default/src/ckan-ckanext-cdrc
     - ../ckan-ckanext-viewhelpers:/usr/lib/ckan/default/src/ckan-ckanext-viewhelpers
     - ../ckan-ckanext-dashboard:/usr/lib/ckan/default/src/ckan-ckanext-dashboard
@@ -20,8 +19,11 @@ ckan:
     - 80:80
   volumes_from:
     - src
-  # environment:
-  #   CKAN_TEST_MODE: 1
+  volumes:
+    - ./my_init.d/40_installpkg:/etc/my_init.d/40_installpkg
+  environment:
+    # CKAN_TEST_MODE: 1
+    CKAN_DEBUG_MODE: 1
 
 solr:
   image: spacelis/ckan-docker-solr
