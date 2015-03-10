@@ -1,10 +1,14 @@
 #!/bin/bash
 set -eu
 
-if [ ${CKAN_TEST_MODE:-0} -ne 1 ]; then
+CKAN_TEST_MODE=${CKAN_TEST_MODE:-0}
+
+if [ $CKAN_TEST_MODE -eq 0 ]; then
   exit 0;
 fi
 
+let "TEST_DBSTORE = $CKAN_TEST_MODE & 2" ||:
+let "TEST_CKAN = $CKAN_TEST_MODE & 1" ||:
 
 CONFIG="$CKAN_HOME"/src/ckan/test-core.ini
 
@@ -37,4 +41,11 @@ link_solr_url () {
     "ckan.datastore.read_url = $(link_postgres_url $CKAN_DATASTORE_READER $CKAN_DATASTORE_READPASS $CKAN_DATASTORE_DB)" \
 
 # Running the tests
-"$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG "$CKAN_HOME"/src/ckan/ckan/new_tests
+if [ "$TEST_CKAN" -gt 0 ]; then
+  echo "Testing CKAN"
+  "$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG "$CKAN_HOME"/src/ckan/ckan/new_tests
+fi
+if [ "$TEST_DBSTORE" -gt 0 ]; then
+  echo "Testing CKAN datastore"
+  "$CKAN_HOME"/bin/nosetests --ckan --reset-db --with-pylons=$CONFIG "$CKAN_HOME"/src/ckan/ckanext/datastore/tests
+fi
